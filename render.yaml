@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: wedding-site
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /
