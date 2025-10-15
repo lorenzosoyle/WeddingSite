@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         params.append('address', formData.address);
         params.append('dietary', formData.dietary);
 
-        const response = await fetch('https://script.google.com/macros/s/AKfycbw7F7hRItksC_GE4Rg6eXUjAHBW1cjXrB0tXpoh65K0wNLfGpKNrphnDqMenIApZLnU/exec?' + params.toString(), {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxLUU1_FcPKdCoBLE3F6s7Ir0xYDScCKIke7f2plu9_mLxToGcGGH60FIbv9442tFhM/exec?' + params.toString(), {
           method: 'GET',
           redirect: 'follow'
         });
