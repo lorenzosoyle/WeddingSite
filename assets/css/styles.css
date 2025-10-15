@@ -191,6 +191,23 @@ h3 + .list { margin-top: -.5rem; }
 .btn-submit:active {
   transform: translateY(0);
 }
+.btn-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Animated heart for loading state */
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.15); }
+}
+.heart-loading {
+  display: inline-block;
+  animation: heartBeat 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
 
 /* Footer */
 .site-footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; background: rgba(255,255,255,0.03); }

@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const submitBtn = contactForm.querySelector('.btn-submit');
       const originalBtnText = submitBtn.textContent;
 
-      // Disable button and show loading state
+      // Disable button and show loading state with animated heart
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
+      submitBtn.innerHTML = '<span class="heart-loading">💗</span>Sending...';
 
       // Get form data
       const formData = {
@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formMessage.style.border = '1px solid rgba(239, 68, 68, 0.3)';
         formMessage.style.color = '#ef4444';
       } finally {
-        // Re-enable button
+        // Re-enable button and restore original text
         submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
+        submitBtn.innerHTML = originalBtnText;
 
         // Hide message after 5 seconds
         setTimeout(() => {
