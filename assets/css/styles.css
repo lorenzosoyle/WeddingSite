@@ -71,7 +71,7 @@ a { color: #7dd3fc; }
 .brand-mark { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: var(--accent); color: #3b2f41; font-weight: 700; font-size: .9rem; }
 .brand-text { font-weight: 600; letter-spacing: .3px; }
 .ampersand-img {
-  height: 1.25em; width: auto; vertical-align: -.16em;
+  height: 1.25em; width: auto; vertical-align: -0.05em;
   /* Ensure transparent background and add drop shadow */
   background: transparent;
   mix-blend-mode: normal;
