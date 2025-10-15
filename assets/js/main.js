@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbwMVe3HwWSneZtqEs3wpZEVBVi8YLQUIHlKaP9UoQJXJKL9igNzvEBbA_PTBdw5PyXysA/exec', {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbyIBbHX8QQA2da9gOB8CLW-ukZ-7YJJ9Ntv-3JjT_cZRsE3k_0njsYN-5D17bZjLUZl/exec', {
           method: 'POST',
           mode: 'no-cors',
           headers: {
