@@ -105,7 +105,7 @@
           <h2>Stay in Touch</h2>
           <div class="card" style="max-width: 600px; margin: 0 auto;">
             <p class="lead" style="font-family: 'Playfair Display', Georgia, 'Times New Roman', Times, serif; color: var(--text); margin-bottom: 2rem;">Want to receive updates about the wedding? Sign up below and we'll keep you in the loop!</p>
-            <form action="https://formspree.io/f/xyznlyjp" method="POST" class="contact-form">
+            <form id="contact-form" class="contact-form">
               <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" required placeholder="Your full name">
@@ -123,6 +123,7 @@
                 <textarea id="dietary" name="dietary" rows="2" placeholder="Let us know about any allergies or dietary restrictions (vegetarian, vegan, gluten-free, etc.)"></textarea>
               </div>
               <button type="submit" class="btn-submit">Sign Up for Updates</button>
+              <div id="form-message" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
             </form>
           </div>
         </div>
