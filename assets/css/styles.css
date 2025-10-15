@@ -72,7 +72,9 @@ a { color: #7dd3fc; }
 .brand-text { font-weight: 600; letter-spacing: .3px; }
 .ampersand-img {
   height: 1.25em; width: auto; vertical-align: -.16em;
-  /* Drop shadow for the colored ampersand */
+  /* Ensure transparent background and add drop shadow */
+  background: transparent;
+  mix-blend-mode: normal;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
 }
 
