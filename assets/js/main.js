@@ -43,26 +43,34 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbw7F7hRItksC_GE4Rg6eXUjAHBW1cjXrB0tXpoh65K0wNLfGpKNrphnDqMenIApZLnU/exec', {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData)
+        // Create URL-encoded form data
+        const params = new URLSearchParams();
+        params.append('name', formData.name);
+        params.append('email', formData.email);
+        params.append('address', formData.address);
+        params.append('dietary', formData.dietary);
+
+        const response = await fetch('https://script.google.com/macros/s/AKfycbw7F7hRItksC_GE4Rg6eXUjAHBW1cjXrB0tXpoh65K0wNLfGpKNrphnDqMenIApZLnU/exec?' + params.toString(), {
+          method: 'GET',
+          redirect: 'follow'
         });
 
-        // Show success message
-        formMessage.textContent = 'Thank you! Your information has been submitted successfully.';
-        formMessage.style.display = 'block';
-        formMessage.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-        formMessage.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-        formMessage.style.color = '#10b981';
+        if (response.ok) {
+          // Show success message
+          formMessage.textContent = 'Thank you! Your information has been submitted successfully.';
+          formMessage.style.display = 'block';
+          formMessage.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+          formMessage.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+          formMessage.style.color = '#10b981';
 
-        // Reset form
-        contactForm.reset();
+          // Reset form
+          contactForm.reset();
+        } else {
+          throw new Error('Form submission failed');
+        }
 
       } catch (error) {
+        console.error('Form error:', error);
         // Show error message
         formMessage.textContent = 'Oops! Something went wrong. Please try again or email us directly.';
         formMessage.style.display = 'block';
