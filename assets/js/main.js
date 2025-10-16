@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Auto-detect landscape images in carousel
+  const carouselImages = document.querySelectorAll('.polaroid-carousel-item img');
+  carouselImages.forEach(img => {
+    img.addEventListener('load', function() {
+      if (this.naturalWidth > this.naturalHeight) {
+        this.closest('.polaroid-carousel-item').classList.add('landscape');
+      }
+    });
+    // If image is already loaded
+    if (img.complete && img.naturalWidth > img.naturalHeight) {
+      img.closest('.polaroid-carousel-item').classList.add('landscape');
+    }
+  });
+
   // Mobile navigation toggle
   const toggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('#site-nav');
