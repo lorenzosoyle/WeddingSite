@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 assets/.DS_Store
 assets/img/.DS_Store
+assets/img/Claude_files/
+assets/img/Claude.html
+.claude/
+.vscode/
