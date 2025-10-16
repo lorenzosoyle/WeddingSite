@@ -102,6 +102,76 @@ a { color: #7dd3fc; }
 .hero .location { color: #c9cfdd; letter-spacing: 2px; }
 .cta { margin-top: 1.25rem; display: inline-flex; gap: .75rem; }
 
+/* Polaroid Hero */
+.polaroid-hero {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+}
+.polaroid {
+  position: relative;
+  background: #fff;
+  padding: 16px 16px 30px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+  transform: rotate(-2deg);
+  max-width: 400px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+.polaroid:hover {
+  transform: rotate(-1deg) translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+.polaroid:active {
+  transform: rotate(-1deg) translateY(-2px);
+  transition: transform 0.1s ease;
+}
+.polaroid img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: none;
+}
+.polaroid img.zoom-crop {
+  object-fit: cover;
+  height: 100%;
+  min-height: 350px;
+  transform: scale(1.5);
+  transform-origin: center center;
+}
+.polaroid-caption {
+  text-align: center;
+  padding-top: 8px;
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.polaroid-pin {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #e74c3c 45%, #c0392b 50%, #e74c3c 55%);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.3);
+  z-index: 10;
+}
+.polaroid-pin::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #922;
+  border-radius: 50%;
+}
+
 /* Buttons */
 .btn { display: inline-block; padding: .625rem 1rem; border-radius: 12px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); box-shadow: var(--shadow); }
 .btn.primary { background: var(--surface); color: #e7eaf3; }
@@ -196,6 +266,72 @@ h3 + .list { margin-top: -.5rem; }
 .btn-submit:disabled {
   cursor: not-allowed;
   opacity: 0.8;
+}
+
+/* Polaroid Carousel */
+.polaroid-carousel {
+  margin-top: 2rem;
+  position: relative;
+  overflow: hidden;
+  height: fit-content;
+}
+.polaroid-carousel::before,
+.polaroid-carousel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+.polaroid-carousel::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+.polaroid-carousel::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
+}
+.polaroid-scroll {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  padding: 2rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+.polaroid-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.polaroid-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.polaroid-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+.polaroid-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3);
+}
+.polaroid-carousel-item {
+  flex-shrink: 0;
+  width: 280px;
+  transform: rotate(-3deg);
+}
+.polaroid-carousel-item.landscape {
+  width: 420px;
+}
+.polaroid-carousel-item.polaroid.landscape {
+  padding: 16px 16px 12px 16px;
+}
+.polaroid-carousel-item:nth-child(2n) {
+  transform: rotate(2deg);
+}
+.polaroid-carousel-item:nth-child(3n) {
+  transform: rotate(-1deg);
 }
 
 /* Animated heart for loading state */
