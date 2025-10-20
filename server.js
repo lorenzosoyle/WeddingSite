@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
+const chokidar = require('chokidar');
 
 const app = express();
 
@@ -36,6 +37,50 @@ if (ENABLE_EDITOR) {
     }
   });
 }
+
+// Hot reload with Server-Sent Events
+let clients = [];
+
+app.get('/__reload', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  // Send initial connection message
+  res.write('data: {"type":"connected"}\n\n');
+
+  // Add this client to the list
+  clients.push(res);
+
+  // Remove client on close
+  req.on('close', () => {
+    clients = clients.filter(client => client !== res);
+  });
+});
+
+// Watch for file changes
+const watcher = chokidar.watch([
+  'index.html',
+  'assets/**/*.css',
+  'assets/**/*.js',
+  'assets/**/*.svg',
+  'assets/**/*.png',
+  'assets/**/*.jpg',
+  'assets/**/*.jpeg'
+], {
+  ignored: /(^|[\/\\])\../,
+  persistent: true,
+  ignoreInitial: true
+});
+
+watcher.on('change', (filePath) => {
+  console.log(`File changed: ${filePath}`);
+  // Notify all connected clients
+  clients.forEach(client => {
+    client.write(`data: {"type":"reload","file":"${filePath}"}\n\n`);
+  });
+});
 
 // Serve the static site
 app.use(express.static(__dirname));
