@@ -5,7 +5,7 @@ This document explains how to preview and publish changes to your wedding websit
 ## Overview
 
 You have two environments:
-- **Preview Branch** (`claude/preview-011CUJy8HAKxAoqcthHcBhY2`) - For testing changes before they go live
+- **Preview Branch** (`preview`) - For testing changes before they go live
 - **Main Branch** (`main`) - Your live website at kathyandben.com
 
 ## The Workflow (3 Simple Steps)
@@ -22,11 +22,11 @@ After Claude pushes changes:
 2. Look for the preview branch in the branches list
 3. Check Vercel for the preview deployment URL
    - OR go to Vercel → Your Project → Deployments
-   - Find the deployment for branch `claude/preview-011CUJy8HAKxAoqcthHcBhY2`
+   - Find the deployment for branch `preview`
    - Click the preview URL to see your changes
 
 **Your preview URL will look like:**
-`https://wedding-site-git-claude-preview-[hash].vercel.app`
+`https://wedding-site-git-preview-[your-username].vercel.app`
 
 ### Step 3: Publish to Live Site (When You're Happy)
 Once you've previewed and like the changes:
@@ -34,7 +34,7 @@ Once you've previewed and like the changes:
 **Option A: Using GitHub (Easiest)**
 1. Go to: `https://github.com/lorenzosoyle/WeddingSite`
 2. Click "Pull requests"
-3. Create a new PR from `claude/preview-011CUJy8HAKxAoqcthHcBhY2` → `main`
+3. Create a new PR from `preview` → `main`
 4. Click "Merge pull request"
 5. Your live site updates automatically!
 
@@ -53,7 +53,7 @@ To ensure preview deployments work automatically:
 ## Current Branch Setup
 
 - **Main (Production)**: `main` → kathyandben.com
-- **Preview (Testing)**: `claude/preview-011CUJy8HAKxAoqcthHcBhY2` → Preview URL from Vercel
+- **Preview (Testing)**: `preview` → Preview URL from Vercel
 
 ## Common Commands (For Reference)
 
@@ -64,10 +64,10 @@ You don't need to run these - Claude Code handles them automatically:
 git branch
 
 # Switch to preview branch
-git checkout claude/preview-011CUJy8HAKxAoqcthHcBhY2
+git checkout preview
 
 # Push changes
-git push origin claude/preview-011CUJy8HAKxAoqcthHcBhY2
+git push origin preview
 ```
 
 ## Tips
