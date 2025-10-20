@@ -207,5 +207,27 @@
     </div>
   </footer>
   <script src="assets/js/main.js"></script>
+  <script>
+    // Hot reload for development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      const eventSource = new EventSource('/__reload');
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'connected') {
+          console.log('🔥 Hot reload connected');
+        } else if (data.type === 'reload') {
+          console.log(`🔄 Reloading: ${data.file} changed`);
+          window.location.reload();
+        }
+      };
+
+      eventSource.onerror = () => {
+        console.log('Hot reload connection lost. Retrying...');
+        eventSource.close();
+        setTimeout(() => window.location.reload(), 1000);
+      };
+    }
+  </script>
   </body>
 </html>
