@@ -348,18 +348,30 @@ h3 + .list { margin-top: -.5rem; }
   flex-shrink: 0;
   width: 280px;
   transform: rotate(-3deg);
+  background: #fff;
+  padding: 16px 16px 30px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.polaroid-carousel-item:hover {
+  transform: rotate(-1deg) translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
 }
 .polaroid-carousel-item.landscape {
   width: 420px;
-}
-.polaroid-carousel-item.polaroid.landscape {
   padding: 16px 16px 12px 16px;
 }
 .polaroid-carousel-item:nth-child(2n) {
   transform: rotate(2deg);
 }
+.polaroid-carousel-item:nth-child(2n):hover {
+  transform: rotate(1deg) translateY(-5px);
+}
 .polaroid-carousel-item:nth-child(3n) {
   transform: rotate(-1deg);
+}
+.polaroid-carousel-item:nth-child(3n):hover {
+  transform: rotate(0deg) translateY(-5px);
 }
 
 /* Animated heart for loading state */
