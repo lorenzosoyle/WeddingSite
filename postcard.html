@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ben & Kathy Wedding Save the Date</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lexend:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: 'Lexend', Arial, sans-serif;
+    }
+
+    .postcard {
+      width: 7in;
+      height: 5in;
+      background: #0b0f1a;
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+
+    /* Cosmic background effect */
+    .postcard::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.3), transparent),
+        radial-gradient(ellipse 60% 80% at 0% 50%, rgba(255, 110, 199, 0.2), transparent),
+        radial-gradient(ellipse 60% 80% at 100% 50%, rgba(95, 211, 243, 0.2), transparent);
+      opacity: 0.6;
+      z-index: 0;
+    }
+
+    .postcard::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='3' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      background: linear-gradient(90deg, #ff6ec7, #5fd3f3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      font-variant-numeric: lining-nums;
+    }
+
+    .ampersand-img {
+      width: 2.8rem;
+      height: 2.8rem;
+      vertical-align: middle;
+      display: inline-block;
+      margin: 0 0.3rem;
+      position: relative;
+      top: -0.2rem;
+    }
+
+    .announcement {
+      font-size: 1.4rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      background: linear-gradient(90deg, #ff80d4, #6fd9f5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      font-variant-numeric: lining-nums;
+    }
+
+    .invitation {
+      font-size: 1rem;
+      color: #e0e0e0;
+      margin-bottom: 0.3rem;
+    }
+
+    .location {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', Georgia, serif;
+      color: #f0a3d5;
+      margin-bottom: 0.3rem;
+      font-variant-numeric: lining-nums;
+    }
+
+    .celebrate {
+      font-size: 1rem;
+      color: #e0e0e0;
+      margin-bottom: 0.3rem;
+    }
+
+    .date {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', Georgia, serif;
+      color: #7dd3fc;
+      margin-bottom: 1.5rem;
+      font-variant-numeric: lining-nums;
+    }
+
+    .photo-container {
+      margin-top: 1rem;
+    }
+
+    .polaroid {
+      background: white;
+      padding: 10px;
+      padding-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transform: rotate(-2deg);
+      display: inline-block;
+      position: relative;
+    }
+
+    .polaroid img {
+      display: block;
+      width: 200px;
+      height: auto;
+    }
+
+    .polaroid-caption {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Caveat', cursive;
+      font-size: 0.9rem;
+      color: #333;
+      padding: 0 10px;
+    }
+
+    .small-text {
+      font-size: 0.65rem;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .postcard {
+        box-shadow: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="postcard">
+    <div class="content">
+      <h1>Ben <img class="ampersand-img" src="assets/img/NewHeart.png?v=2" alt="&"> Kathy</h1>
+      <p class="announcement">are finally getting married!</p>
+
+      <p class="invitation">We'd love for you to join us in</p>
+      <p class="location">Brooklyn, New York</p>
+      <p class="celebrate">to celebrate our wedding on</p>
+      <p class="date">Saturday, October 10, 2026</p>
+
+      <div class="photo-container">
+        <div class="polaroid">
+          <img src="assets/img/KnB.jpg" alt="Ben and Kathy">
+          <div class="polaroid-caption">It's only been... <span class="small-text">*checks watch*</span> ten years?!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
