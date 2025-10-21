@@ -13,6 +13,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Easter egg: flip polaroid after 5 clicks
+  const heroPolaroid = document.querySelector('.polaroid-hero .polaroid');
+  if (heroPolaroid) {
+    let clickCount = 0;
+    heroPolaroid.addEventListener('click', () => {
+      clickCount++;
+      if (clickCount === 5) {
+        heroPolaroid.classList.add('flipped');
+      }
+    });
+
+    // Double-click to flip back
+    heroPolaroid.addEventListener('dblclick', () => {
+      heroPolaroid.classList.remove('flipped');
+      clickCount = 0;
+    });
+  }
+
   // Mobile navigation toggle
   const toggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('#site-nav');
