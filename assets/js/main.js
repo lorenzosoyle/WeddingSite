@@ -13,21 +13,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Easter egg: flip polaroid after 5 clicks
+  // Easter egg: flip polaroid after 5 fast taps/clicks
   const heroPolaroid = document.querySelector('.polaroid-hero .polaroid');
   if (heroPolaroid) {
-    let clickCount = 0;
-    heroPolaroid.addEventListener('click', () => {
-      clickCount++;
-      if (clickCount === 5) {
-        heroPolaroid.classList.add('flipped');
+    let tapCount = 0;
+    let tapTimer = null;
+    let lastTapTime = 0;
+    const TAP_TIMEOUT = 2000; // Reset count after 2 seconds of inactivity
+    const DOUBLE_TAP_DELAY = 300; // Time window for double tap detection
+
+    // Function to handle tap/click
+    const handleTap = () => {
+      tapCount++;
+
+      // Clear existing timer
+      if (tapTimer) {
+        clearTimeout(tapTimer);
       }
+
+      // Set timer to reset count
+      tapTimer = setTimeout(() => {
+        tapCount = 0;
+      }, TAP_TIMEOUT);
+
+      // Flip after 5 taps
+      if (tapCount === 5) {
+        heroPolaroid.classList.add('flipped');
+        tapCount = 0;
+        if (tapTimer) {
+          clearTimeout(tapTimer);
+          tapTimer = null;
+        }
+      }
+    };
+
+    // Click event for desktop
+    heroPolaroid.addEventListener('click', handleTap);
+
+    // Touch event for mobile
+    heroPolaroid.addEventListener('touchend', (e) => {
+      e.preventDefault(); // Prevent click event from also firing
+      handleTap();
+
+      // Double-tap detection for mobile
+      const currentTime = new Date().getTime();
+      const tapInterval = currentTime - lastTapTime;
+
+      if (tapInterval < DOUBLE_TAP_DELAY && tapInterval > 0) {
+        // Double tap detected
+        heroPolaroid.classList.remove('flipped');
+        tapCount = 0;
+        if (tapTimer) {
+          clearTimeout(tapTimer);
+          tapTimer = null;
+        }
+      }
+
+      lastTapTime = currentTime;
     });
 
-    // Double-click to flip back
+    // Double-click to flip back (desktop)
     heroPolaroid.addEventListener('dblclick', () => {
       heroPolaroid.classList.remove('flipped');
-      clickCount = 0;
+      tapCount = 0;
+      if (tapTimer) {
+        clearTimeout(tapTimer);
+        tapTimer = null;
+      }
     });
   }
 
