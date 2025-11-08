@@ -19,12 +19,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let tapCount = 0;
     let tapTimer = null;
     let lastTapTime = 0;
-    const TAP_TIMEOUT = 2000; // Reset count after 2 seconds of inactivity
-    const DOUBLE_TAP_DELAY = 300; // Time window for double tap detection
+    const TAP_TIMEOUT = 4000; // Reset count after 4 seconds of inactivity (more forgiving)
+    const DOUBLE_TAP_DELAY = 500; // Time window for double tap detection
 
     // Function to handle tap/click
-    const handleTap = () => {
+    const handleTap = (e) => {
+      const currentTime = new Date().getTime();
+      const tapInterval = currentTime - lastTapTime;
+
+      // Check for double-tap to flip back
+      if (tapInterval < DOUBLE_TAP_DELAY && tapInterval > 0 && heroPolaroid.classList.contains('flipped')) {
+        // Double tap detected on flipped polaroid - flip back
+        heroPolaroid.classList.remove('flipped');
+        tapCount = 0;
+        if (tapTimer) {
+          clearTimeout(tapTimer);
+          tapTimer = null;
+        }
+        lastTapTime = currentTime;
+        return;
+      }
+
+      // Increment tap count
       tapCount++;
+      lastTapTime = currentTime;
 
       // Clear existing timer
       if (tapTimer) {
@@ -47,33 +65,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    // Click event for desktop
-    heroPolaroid.addEventListener('click', handleTap);
+    // Touch event for mobile - use touchstart for more responsive feel
+    let touchHandled = false;
+    heroPolaroid.addEventListener('touchstart', (e) => {
+      touchHandled = true;
+      handleTap(e);
+    }, { passive: true });
 
-    // Touch event for mobile
-    heroPolaroid.addEventListener('touchend', (e) => {
-      e.preventDefault(); // Prevent click event from also firing
-      handleTap();
-
-      // Double-tap detection for mobile
-      const currentTime = new Date().getTime();
-      const tapInterval = currentTime - lastTapTime;
-
-      if (tapInterval < DOUBLE_TAP_DELAY && tapInterval > 0) {
-        // Double tap detected
-        heroPolaroid.classList.remove('flipped');
-        tapCount = 0;
-        if (tapTimer) {
-          clearTimeout(tapTimer);
-          tapTimer = null;
-        }
+    // Click event for desktop (and prevent duplicate firing after touch)
+    heroPolaroid.addEventListener('click', (e) => {
+      if (touchHandled) {
+        e.preventDefault();
+        touchHandled = false;
+        return;
       }
-
-      lastTapTime = currentTime;
+      handleTap(e);
     });
 
     // Double-click to flip back (desktop)
-    heroPolaroid.addEventListener('dblclick', () => {
+    heroPolaroid.addEventListener('dblclick', (e) => {
       heroPolaroid.classList.remove('flipped');
       tapCount = 0;
       if (tapTimer) {
