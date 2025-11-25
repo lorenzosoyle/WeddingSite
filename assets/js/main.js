@@ -13,21 +13,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Easter egg: flip polaroid after 5 clicks
+  // Easter egg: swipe or click polaroid to flip it
   const heroPolaroid = document.querySelector('.polaroid-hero .polaroid');
   if (heroPolaroid) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
     let clickCount = 0;
+    let clickTimer = null;
+    const SWIPE_THRESHOLD = 50; // Minimum distance for a swipe (pixels)
+    const SWIPE_TIME_LIMIT = 500; // Maximum time for a swipe (ms)
+    const CLICK_TIMEOUT = 3000; // Reset click count after 3 seconds
+
+    // Handle touch start
+    heroPolaroid.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = new Date().getTime();
+    }, { passive: true });
+
+    // Handle touch end - detect swipe
+    heroPolaroid.addEventListener('touchend', (e) => {
+      const touch = e.changedTouches[0];
+      const touchEndX = touch.clientX;
+      const touchEndY = touch.clientY;
+      const touchEndTime = new Date().getTime();
+
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      const deltaTime = touchEndTime - touchStartTime;
+
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      // Check if this was a swipe (moved enough distance in short time)
+      if (distance > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_LIMIT) {
+        // Swipe detected - flip the polaroid
+        if (heroPolaroid.classList.contains('flipped')) {
+          heroPolaroid.classList.remove('flipped');
+        } else {
+          heroPolaroid.classList.add('flipped');
+        }
+      }
+    }, { passive: true });
+
+    // Desktop: 5 clicks to flip
     heroPolaroid.addEventListener('click', () => {
       clickCount++;
+
+      // Clear existing timer
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+      }
+
+      // Set timer to reset count
+      clickTimer = setTimeout(() => {
+        clickCount = 0;
+      }, CLICK_TIMEOUT);
+
+      // Flip after 5 clicks
       if (clickCount === 5) {
         heroPolaroid.classList.add('flipped');
+        clickCount = 0;
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
       }
     });
 
-    // Double-click to flip back
+    // Double-click to flip back (desktop)
     heroPolaroid.addEventListener('dblclick', () => {
       heroPolaroid.classList.remove('flipped');
       clickCount = 0;
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
     });
   }
 
