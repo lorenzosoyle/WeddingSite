@@ -133,8 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
         address: document.getElementById('address').value,
-        dietary: document.getElementById('dietary').value,
-        hotelInterest: document.getElementById('hotel-interest').value
+        dietary: document.getElementById('dietary').value
       };
 
       try {
@@ -144,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         params.append('email', formData.email);
         params.append('address', formData.address);
         params.append('dietary', formData.dietary);
-        params.append('hotelInterest', formData.hotelInterest);
 
         const response = await fetch('https://script.google.com/macros/s/AKfycbxLUU1_FcPKdCoBLE3F6s7Ir0xYDScCKIke7f2plu9_mLxToGcGGH60FIbv9442tFhM/exec?' + params.toString(), {
           method: 'GET',
