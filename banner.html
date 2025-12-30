@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ben & Kathy Wedding Banner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+        }
+
+        /* PDF Print Styles */
+        @page {
+            size: 1200px 600px;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                width: 1200px;
+                height: 600px;
+                margin: 0;
+                padding: 0;
+            }
+
+            .banner {
+                width: 1200px;
+                height: 600px;
+            }
+        }
+
+        .banner {
+            width: 1200px;
+            height: 600px;
+            background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwwDAwwHAwMEAwMDAwMDBAMDAwMDAwQGBBMDAwICAgICBQkJCgkICAcICAgICAgICAgICAgICAkICAcICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAj/wAARCAC4APgDAREAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWm5ybnJ2eoqOkpaanqKmqsrO0tba2uLm6wsPExcbHyMnK0tPU1dbW2Nna4uPk5ebn6Onq8vP09fb2+Pn6/8QAHwEAAwEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlbaWmJmaoqOkpaanqKmqsrO0tba2uLm6wsPExcbHyMnK0tPU1dbW2Nna4uPk5ebn6Onq8vP09fb2+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/2Q==');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 100% 0%, rgba(255, 110, 199, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(95, 211, 243, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .content {
+            flex: 1;
+            z-index: 2;
+            max-width: 55%;
+            margin-right: 40px;
+            position: relative;
+        }
+
+        .names {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 72px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ff6ec7, #5fd3f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 48px;
+            background: linear-gradient(90deg, #ff80d4, #6fd9f5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            font-weight: 400;
+        }
+
+        .details {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 28px;
+            color: #e6e8ef;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .details strong {
+            color: #945f93;
+        }
+
+        .photo-container {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .polaroid {
+            position: relative;
+            width: 320px;
+            height: auto;
+            background: white;
+            padding: 15px;
+            padding-bottom: 50px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+            transform: rotate(5deg);
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: grayscale(1);
+        }
+
+        .polaroid-caption {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            right: 15px;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .pin {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            border-radius: 50%;
+            top: 12px;
+            right: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        @media (max-width: 1024px) {
+            .banner {
+                flex-direction: column;
+                padding: 40px;
+                width: auto;
+                height: auto;
+            }
+
+            .content {
+                max-width: 100%;
+                margin-right: 0;
+                margin-bottom: 40px;
+                text-align: center;
+            }
+
+            .names {
+                font-size: 48px;
+            }
+
+            .tagline {
+                font-size: 32px;
+            }
+
+            .details {
+                font-size: 22px;
+            }
+
+            .photo-container {
+                justify-content: center;
+            }
+
+            .polaroid {
+                width: 280px;
+                transform: rotate(0deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <div class="content">
+            <div class="names">BEN <span style="color: #945f93;">♥</span> KATHY</div>
+            <div class="tagline">are finally getting married!</div>
+            <div class="details">
+                Please save the date for<br>
+                <strong>the wedding of Kathy Wielgosz and Ben Sherry<br>
+                on Saturday, October 10, 2026 in<br>
+                Brooklyn, New York.</strong>
+            </div>
+        </div>
+
+        <div class="photo-container">
+            <div class="polaroid">
+                <div class="pin"></div>
+                <img src="assets/img/KnB.jpg" alt="Ben and Kathy">
+                <div class="polaroid-caption">It's only been... ten years?!</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
