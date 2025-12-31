@@ -13,48 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Easter egg: swipe or click polaroid to flip it
+  // Easter egg: tap or click polaroid to flip it
   const heroPolaroid = document.querySelector('.polaroid-hero .polaroid');
   if (heroPolaroid) {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchStartTime = 0;
-    const SWIPE_THRESHOLD = 50; // Minimum distance for a swipe (pixels)
-    const SWIPE_TIME_LIMIT = 500; // Maximum time for a swipe (ms)
-
-    // Handle touch start
-    heroPolaroid.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      touchStartTime = new Date().getTime();
-    }, { passive: true });
-
-    // Handle touch end - detect swipe
-    heroPolaroid.addEventListener('touchend', (e) => {
-      const touch = e.changedTouches[0];
-      const touchEndX = touch.clientX;
-      const touchEndY = touch.clientY;
-      const touchEndTime = new Date().getTime();
-
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-      const deltaTime = touchEndTime - touchStartTime;
-
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-      // Check if this was a swipe (moved enough distance in short time)
-      if (distance > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_LIMIT) {
-        // Swipe detected - flip the polaroid
-        if (heroPolaroid.classList.contains('flipped')) {
-          heroPolaroid.classList.remove('flipped');
-        } else {
-          heroPolaroid.classList.add('flipped');
-        }
-      }
-    }, { passive: true });
-
-    // Desktop: single click to toggle flip
+    // Single click/tap to toggle flip
     heroPolaroid.addEventListener('click', () => {
       if (heroPolaroid.classList.contains('flipped')) {
         heroPolaroid.classList.remove('flipped');
