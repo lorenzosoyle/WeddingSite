@@ -275,7 +275,7 @@ h3 + .list { margin-top: -.5rem; }
   padding: .875rem 1.5rem;
   border-radius: 12px;
   border: none;
-  background: #789fc8;
+  background: #b7d171;
   color: var(--primary-contrast);
   font-weight: 600;
   font-size: 1rem;
@@ -284,7 +284,7 @@ h3 + .list { margin-top: -.5rem; }
   box-shadow: var(--shadow);
 }
 .btn-submit:hover {
-  background: #8aacd6;
+  background: #c5db8a;
   transform: translateY(-1px);
   box-shadow: 0 12px 35px rgba(0,0,0,0.4);
 }
