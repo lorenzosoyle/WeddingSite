@@ -1,8 +1,11 @@
 {
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(rm:*)"
-    ]
-  }
+      "Bash(rm:*)",
+      "Bash(node generate-pdf.js:*)",
+      "Bash(ls:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "outputStyle": "default"
 }

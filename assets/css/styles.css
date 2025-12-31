@@ -227,7 +227,7 @@ h3 + .list { margin-top: -.5rem; }
 .map-wrap iframe { width: 100%; border-radius: 12px; border: 1px solid var(--border); filter: saturate(90%); }
 
 /* Map wrapping and positioning */
-#venue .map-wrap { float: right; max-width: min(420px, 45%); margin: 0 0 1rem 1rem; }
+#venue .map-wrap { float: right; max-width: 48%; margin: 0 0 1rem 1rem; }
 #venue .map-wrap.wrap-right { float: right; margin: 0 0 1rem 1rem; }
 #venue .map-wrap.wrap-left { float: left; margin: 0 1rem 1rem 0; }
 @media (max-width: 680px) {
