@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clair de Lune — Ben & Kathy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f1a; font-family: 'Segoe UI', Arial, sans-serif; }
+canvas { display: block; width: 100%; height: 100%; }
+#overlay {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 10;
+  background: rgba(11,15,26,0.85); transition: opacity 0.6s;
+}
+#overlay.hidden { opacity: 0; pointer-events: none; }
+#playBtn {
+  width: 100px; height: 100px; border-radius: 50%; border: 2px solid #ff3d81;
+  background: rgba(255,61,129,0.08); cursor: none; position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 30px rgba(255,61,129,0.2);
+}
+#playBtn:hover { transform: scale(1.06); box-shadow: 0 0 40px rgba(255,61,129,0.35); }
+#playBtn::after {
+  content: ''; position: absolute; left: 40px; top: 30px;
+  border-style: solid; border-width: 20px 0 20px 32px;
+  border-color: transparent transparent transparent #ff3d81;
+}
+#title {
+  color: #ff3d81; font-family: 'Cinzel', serif; font-size: 1.8rem; letter-spacing: 8px;
+  text-transform: uppercase; margin-bottom: 8px; opacity: 0.85;
+}
+#subtitle {
+  color: #5fd3f3; font-size: 0.75rem; letter-spacing: 4px;
+  text-transform: uppercase; margin-bottom: 35px; opacity: 0.5;
+}
+#pauseHint {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 20; color: #a7adba; font-size: 0.65rem; letter-spacing: 3px;
+  text-transform: uppercase; opacity: 0; transition: opacity 0.6s;
+}
+#pauseHint.visible { opacity: 0.4; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <div id="title">Ben & Kathy</div>
+  <div id="subtitle">Clair de Lune</div>
+  <button id="playBtn"></button>
+</div>
+<div id="pauseHint">Click anywhere to pause</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+const COLORS = ['#5fd3f3','#ff3d81','#7a5cff','#33d17a','#ffd166','#ff8a00'];
+const PINK = '#ff3d81';
+const CYAN = '#5fd3f3';
+const BG = '#0b0f1a';
+
+// ── Cursor Trail ──
+let mouseX = W/2, mouseY = H/2;
+const cursorTrail = [];
+const MAX_TRAIL = 20;
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursorTrail.push({ x: mouseX, y: mouseY, life: 1, color: COLORS[Math.floor(Math.random() * COLORS.length)] });
+  if (cursorTrail.length > MAX_TRAIL) cursorTrail.shift();
+});
+
+function drawCursorTrail() {
+  for (let i = 1; i < cursorTrail.length; i++) {
+    const t = cursorTrail[i], prev = cursorTrail[i-1];
+    t.life *= 0.94;
+    ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(t.x, t.y);
+    ctx.strokeStyle = t.color; ctx.globalAlpha = t.life * 0.5; ctx.lineWidth = t.life * 3; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  drawHeart(mouseX, mouseY, 8, PINK, 0.9);
+}
+
+function drawHeart(x, y, size, color, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.beginPath();
+  const s = size / 15;
+  ctx.moveTo(0, s*4);
+  ctx.bezierCurveTo(0,s*2,-s*8,s*-2,-s*14,s*-2);
+  ctx.bezierCurveTo(-s*20,s*-2,-s*20,s*6,-s*20,s*6);
+  ctx.bezierCurveTo(-s*20,s*12,-s*8,s*20,0,s*26);
+  ctx.bezierCurveTo(s*8,s*20,s*20,s*12,s*20,s*6);
+  ctx.bezierCurveTo(s*20,s*6,s*20,s*-2,s*14,s*-2);
+  ctx.bezierCurveTo(s*6,s*-2,0,s*2,0,s*4);
+  ctx.closePath(); ctx.fillStyle = color; ctx.fill(); ctx.restore();
+}
+
+// ══════════════════════════════════════
+// ── DANCING COSMIC LOVERS ──
+// Two magnificent particle nebulae that orbit, embrace, and react to cursor
+// ══════════════════════════════════════
+
+const DANCER_PARTICLES = 120;
+const dancerA = { particles: [], color: PINK, color2: '#ffd166', trailColor: 'rgba(255,61,129,' };
+const dancerB = { particles: [], color: CYAN, color2: '#7a5cff', trailColor: 'rgba(95,211,243,' };
+
+function initDancers() {
+  for (let i = 0; i < DANCER_PARTICLES; i++) {
+    // Layered distribution: dense core + sparse halo
+    const isHalo = i > DANCER_PARTICLES * 0.6;
+    const maxDist = isHalo ? 80 : 40;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.pow(Math.random(), 0.6) * maxDist;
+    dancerA.particles.push({
+      ox: Math.cos(angle)*dist, oy: Math.sin(angle)*dist,
+      x: 0, y: 0, // live position for cursor interaction
+      size: isHalo ? 0.8 + Math.random()*1.5 : 1.5 + Math.random()*3,
+      phase: Math.random()*Math.PI*2,
+      orbitSpeed: 0.3 + Math.random()*0.7,
+      orbitRadius: 2 + Math.random()*6,
+      isHalo
+    });
+    const a2 = Math.random() * Math.PI * 2;
+    const d2 = Math.pow(Math.random(), 0.6) * maxDist;
+    dancerB.particles.push({
+      ox: Math.cos(a2)*d2, oy: Math.sin(a2)*d2,
+      x: 0, y: 0,
+      size: isHalo ? 0.8 + Math.random()*1.5 : 1.5 + Math.random()*3,
+      phase: Math.random()*Math.PI*2,
+      orbitSpeed: 0.3 + Math.random()*0.7,
+      orbitRadius: 2 + Math.random()*6,
+      isHalo
+    });
+  }
+}
+initDancers();
+
+const trailA = [], trailB = [];
+const MAX_DANCER_TRAIL = 80;
+
+// ── Choreography timeline synced to Clair de Lune ──
+// Sections: A(0-21.6s) B(21.6-36s) C(36-50.4s) D(50.4-68.4s)
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(t) { return t * t * (3 - 2 * t); }
+
+// Cross-fade between sections to prevent position jumps
+// Evaluate raw section params at a given musicTime
+function getSectionParams(mt, R) {
+  const sB = DQ*18, sC = DQ*30, sD = DQ*42, sEnd = DQ*57;
+  let separation, angle, vertOff, horizOff, breathe, section;
+
+  if (mt < sB) {
+    section = 'A';
+    const p = smoothstep(Math.min(mt / sB, 1));
+    separation = R * lerp(1.8, 0.7, p);
+    const orbitSpeed = lerp(0.05, 0.2, p);
+    angle = mt * orbitSpeed;
+    vertOff = Math.sin(mt * 0.08) * R * lerp(0.05, 0.25, p);
+    horizOff = Math.sin(mt * 0.05) * R * 0.1;
+    breathe = p * 0.3;
+  } else if (mt < sC) {
+    section = 'B';
+    const local = mt - sB;
+    const p = local / (sC - sB);
+    separation = R * lerp(0.7, 0.45, smoothstep(p));
+    const orbitSpeed = lerp(0.2, 0.35, p);
+    angle = sB * 0.2 + local * orbitSpeed;
+    vertOff = Math.sin(mt * 0.2) * R * 0.35 + Math.sin(local * 0.8) * R * 0.12;
+    horizOff = Math.sin(mt * 0.12) * R * 0.2;
+    breathe = 0.3 + p * 0.3;
+  } else if (mt < sD) {
+    section = 'C';
+    const local = mt - sC;
+    const p = local / (sD - sC);
+    const climaxP = smoothstep(Math.max(0, 1 - Math.abs(p - 0.25) * 4));
+    separation = R * lerp(0.45, 0.15, smoothstep(p * 2 > 1 ? 2 - p * 2 : p * 2));
+    separation = Math.min(separation, R * (0.45 - climaxP * 0.25));
+    const orbitSpeed = lerp(0.35, 0.6, p);
+    angle = sB * 0.2 + (sC - sB) * 0.35 + local * orbitSpeed;
+    vertOff = Math.sin(mt * 0.2) * R * 0.3 - climaxP * R * 0.3;
+    horizOff = Math.sin(mt * 0.15) * R * 0.15;
+    breathe = 0.6 + climaxP * 0.4;
+  } else if (mt < sEnd) {
+    section = 'D';
+    const local = mt - sD;
+    const dur = sEnd - sD;
+    const p = smoothstep(local / dur);
+    separation = R * lerp(0.3, 0.55, p);
+    const orbitSpeed = lerp(0.5, 0.12, p);
+    angle = sB * 0.2 + (sC - sB) * 0.35 + (sD - sC) * 0.6 + local * orbitSpeed;
+    vertOff = Math.sin(mt * 0.15) * R * lerp(0.25, 0.08, p);
+    horizOff = Math.sin(mt * 0.08) * R * lerp(0.15, 0.05, p);
+    breathe = lerp(0.8, 0.2, p);
+  } else {
+    section = 'idle';
+    separation = R * 0.55;
+    angle = mt * 0.1;
+    vertOff = Math.sin(mt * 0.1) * R * 0.08;
+    horizOff = Math.sin(mt * 0.06) * R * 0.05;
+    breathe = 0.15;
+  }
+  return { separation, angle, vertOff, horizOff, breathe, section };
+}
+
+function getDancerPositions(t, energy) {
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W, H) * 0.22;
+
+  const loopLen = DQ * 57 + 2;
+  const musicTime = audioCtx ? ((audioCtx.currentTime - playStartTime) % loopLen) : 0;
+  const mt = playing ? musicTime : 0;
+
+  // Section boundaries for crossfade detection
+  const boundaries = [DQ*18, DQ*30, DQ*42, DQ*57];
+  const FADE = 2.0; // crossfade duration in seconds
+
+  // Get current section params
+  const cur = getSectionParams(mt, R);
+  let { separation, angle, vertOff, horizOff, breathe } = cur;
+  const section = cur.section;
+
+  // Crossfade near boundaries to prevent jumps
+  for (const boundary of boundaries) {
+    const dist = mt - boundary;
+    if (dist > -FADE && dist < FADE) {
+      const fadeT = smoothstep((dist + FADE) / (FADE * 2)); // 0 at start, 1 at end
+      // Evaluate "other side" of boundary
+      const otherMt = dist < 0 ? boundary + 0.01 : boundary - 0.01;
+      if (otherMt >= 0 && otherMt < loopLen) {
+        const other = getSectionParams(otherMt, R);
+        const blend = dist < 0 ? (1 - fadeT) : fadeT; // weight toward current
+        // Only blend if sections actually differ
+        if (other.section !== cur.section) {
+          const w = smoothstep(blend);
+          separation = lerp(other.separation, separation, w);
+          // Blend angles carefully to avoid wrapping issues
+          let aDiff = angle - other.angle;
+          while (aDiff > Math.PI) aDiff -= Math.PI * 2;
+          while (aDiff < -Math.PI) aDiff += Math.PI * 2;
+          angle = other.angle + aDiff * w;
+          vertOff = lerp(other.vertOff, vertOff, w);
+          horizOff = lerp(other.horizOff, horizOff, w);
+          breathe = lerp(other.breathe, breathe, w);
+        }
+      }
+    }
+  }
+
+  const sharedAngle = angle;
+  const ax = cx + horizOff + Math.cos(sharedAngle) * separation;
+  const ay = cy + vertOff + Math.sin(sharedAngle) * separation * 0.65;
+  const lagAngle = sharedAngle + Math.PI + Math.sin(t * 0.45) * 0.15 * (1 - breathe);
+  const bx = cx + horizOff + Math.cos(lagAngle) * separation;
+  const by = cy + vertOff + Math.sin(lagAngle) * separation * 0.65;
+
+  return { ax, ay, bx, by, separation, breathe, section, musicTime: mt };
+}
+
+function drawDancers(t, energy) {
+  const pos = getDancerPositions(t, energy);
+  const { ax, ay, bx, by, separation, breathe } = pos;
+
+  trailA.push({ x: ax, y: ay });
+  trailB.push({ x: bx, y: by });
+  if (trailA.length > MAX_DANCER_TRAIL) trailA.shift();
+  if (trailB.length > MAX_DANCER_TRAIL) trailB.shift();
+
+  // Connecting threads — multiple ethereal strands
+  const closeness = 1 - Math.min(separation / (Math.min(W,H)*0.3), 1);
+  if (closeness > 0.05) {
+    for (let s = 0; s < 3; s++) {
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      const phase = s * 2.1 + t * 0.5;
+      const midX = (ax+bx)/2 + Math.sin(phase) * 30 * (1-closeness);
+      const midY = (ay+by)/2 + Math.cos(phase*0.7) * 30 * (1-closeness);
+      ctx.quadraticCurveTo(midX, midY, bx, by);
+      ctx.strokeStyle = s === 1 ? '#7a5cff' : (s === 0 ? PINK : CYAN);
+      ctx.globalAlpha = closeness * 0.12;
+      ctx.lineWidth = closeness * 1.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Draw trails with gradient width
+  drawDancerTrail(trailA, dancerA.trailColor);
+  drawDancerTrail(trailB, dancerB.trailColor);
+
+  // Draw particle nebulae
+  const jitter = 1 + energy * 4;
+  drawDancerCloud(ax, ay, dancerA, t, jitter, energy);
+  drawDancerCloud(bx, by, dancerB, t, jitter, energy);
+
+  // Sparkles between them
+  if (closeness > 0.3 && Math.random() < closeness * 0.25) {
+    const sx = ax + (bx-ax)*Math.random();
+    const sy = ay + (by-ay)*Math.random();
+    spawnSparkle(sx, sy);
+  }
+  // Extra sparkles when very close
+  if (closeness > 0.7 && Math.random() < 0.3) {
+    for (let i = 0; i < 3; i++) spawnSparkle(
+      (ax+bx)/2 + (Math.random()-0.5)*40,
+      (ay+by)/2 + (Math.random()-0.5)*40
+    );
+  }
+
+  // Section-specific effects
+  const section = pos.section;
+  if (section === 'C') {
+    // Passionate section: burst of heart-sparkles near the pair
+    if (Math.random() < 0.12) {
+      const hx = (ax+bx)/2 + (Math.random()-0.5)*60;
+      const hy = (ay+by)/2 + (Math.random()-0.5)*60;
+      floatingHearts.push({
+        x: hx, y: hy, vy: -0.8-Math.random()*0.4, vx: (Math.random()-0.5)*0.5,
+        size: 3+Math.random()*5, wobble: Math.random()*Math.PI*2, wobbleSpeed: 0.02,
+        color: PINK, alpha: 0.15+Math.random()*0.1
+      });
+    }
+  }
+  if (section === 'D' && pos.musicTime > DQ*48) {
+    // Final resolution: gentle golden sparkles
+    if (Math.random() < 0.08) {
+      spawnSparkle(
+        cx + (Math.random()-0.5)*W*0.4,
+        cy + (Math.random()-0.5)*H*0.3
+      );
+    }
+  }
+}
+
+function drawDancerTrail(trail, colorBase) {
+  for (let i = 1; i < trail.length; i++) {
+    const progress = i / trail.length;
+    const alpha = progress * 0.3;
+    const width = progress * 3.5;
+    ctx.beginPath();
+    ctx.moveTo(trail[i-1].x, trail[i-1].y);
+    ctx.lineTo(trail[i].x, trail[i].y);
+    ctx.strokeStyle = colorBase + alpha + ')';
+    ctx.lineWidth = width;
+    ctx.stroke();
+  }
+}
+
+function drawDancerCloud(x, y, dancer, t, jitter, energy) {
+  // Compute cursor distance to this cluster center
+  const dx = mouseX - x, dy = mouseY - y;
+  const cursorDist = Math.sqrt(dx*dx + dy*dy);
+  const cursorInfluence = Math.max(0, 1 - cursorDist / 200); // 0-1, strong within 200px
+  const cursorAngle = Math.atan2(dy, dx);
+
+  for (const p of dancer.particles) {
+    // Base orbital motion
+    const orbit = Math.sin(t * p.orbitSpeed + p.phase) * p.orbitRadius;
+    const orbitY = Math.cos(t * p.orbitSpeed * 0.8 + p.phase) * p.orbitRadius;
+    const wobbleX = Math.sin(t * 1.2 + p.phase) * jitter;
+    const wobbleY = Math.cos(t * 0.9 + p.phase * 1.3) * jitter;
+    const breathe = 1 + Math.sin(t * 0.6 + p.phase) * 0.2 * (1 + energy);
+
+    let px = x + p.ox * breathe + wobbleX + orbit;
+    let py = y + p.oy * breathe + wobbleY + orbitY;
+
+    // Cursor interaction: particles bloom outward when cursor is near
+    if (cursorInfluence > 0) {
+      const pdx = px - mouseX, pdy = py - mouseY;
+      const pDist = Math.sqrt(pdx*pdx + pdy*pdy);
+      if (pDist < 180 && pDist > 0) {
+        const pushStrength = cursorInfluence * (1 - pDist/180) * 35;
+        px += (pdx/pDist) * pushStrength;
+        py += (pdy/pDist) * pushStrength;
+      }
+    }
+
+    p.x = px; p.y = py;
+    const size = p.size * (0.8 + energy * 0.6 + cursorInfluence * 0.4);
+
+    // Inner particles are brighter
+    const baseAlpha = p.isHalo ? 0.2 : 0.45;
+    const alpha = baseAlpha + Math.sin(t * 0.8 + p.phase) * 0.1 + cursorInfluence * 0.15;
+
+    ctx.beginPath();
+    ctx.arc(px, py, size, 0, Math.PI * 2);
+    ctx.fillStyle = p.isHalo ? dancer.color2 : dancer.color;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+  }
+
+  // Layered core glow — concentric translucent circles
+  const glowBoost = cursorInfluence * 0.15;
+  for (let r = 3; r >= 0; r--) {
+    const radius = (12 + r * 8) + energy * 8 + cursorInfluence * 15;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = r % 2 === 0 ? dancer.color : dancer.color2;
+    ctx.globalAlpha = (0.06 - r * 0.012) + energy * 0.04 + glowBoost;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Spawn cursor-interaction sparkles
+  if (cursorInfluence > 0.3 && Math.random() < cursorInfluence * 0.2) {
+    spawnSparkle(
+      x + (mouseX - x) * 0.3 + (Math.random()-0.5) * 40,
+      y + (mouseY - y) * 0.3 + (Math.random()-0.5) * 40
+    );
+  }
+}
+
+// Sparkles
+let sparkles = [];
+function spawnSparkle(x, y) {
+  sparkles.push({
+    x, y, vx: (Math.random()-0.5)*1.2, vy: -0.5 - Math.random()*0.8,
+    life: 1, decay: 0.008 + Math.random()*0.01,
+    size: 1 + Math.random()*2.5,
+    color: COLORS[Math.floor(Math.random()*COLORS.length)]
+  });
+}
+function drawSparkles() {
+  sparkles = sparkles.filter(s => s.life > 0);
+  for (const s of sparkles) {
+    s.x += s.vx; s.y += s.vy; s.vx *= 0.99; s.vy *= 0.99; s.life -= s.decay;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.globalAlpha = s.life * 0.6; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ══════════════════════════════════════
+// ── AUDIO ENGINE ──
+// ══════════════════════════════════════
+
+let audioCtx, analyser, freqData, timeData, masterGain, reverbGain;
+let playing = false;
+let noteScheduler;
+let scheduledNoteEvents = [];
+let playStartTime = 0; // audioCtx.currentTime when music began
+const DQ = 0.4 * 3; // dotted quarter = 1.2s (must match scheduleClairDeLune)
+
+function mtof(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+
+// Create convolution reverb impulse
+function createReverb() {
+  const length = audioCtx.sampleRate * 2.5;
+  const impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.2);
+    }
+  }
+  const conv = audioCtx.createConvolver();
+  conv.buffer = impulse;
+  return conv;
+}
+
+// Orchestral voice types
+function playPianoNote(time, midi, duration, velocity) {
+  const freq = mtof(midi);
+  const vol = velocity * 0.18;
+  const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = freq;
+  const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = freq * 2;
+  const osc3 = audioCtx.createOscillator(); osc3.type = 'sine'; osc3.frequency.value = freq * 3;
+  const g1 = audioCtx.createGain(), g2 = audioCtx.createGain(), g3 = audioCtx.createGain();
+  const attack = 0.015, release = Math.min(duration * 0.6, 1.8);
+  g1.gain.setValueAtTime(0, time);
+  g1.gain.linearRampToValueAtTime(vol, time + attack);
+  g1.gain.linearRampToValueAtTime(vol * 0.5, time + attack + duration * 0.3);
+  g1.gain.linearRampToValueAtTime(0.001, time + duration + release);
+  g2.gain.setValueAtTime(0, time);
+  g2.gain.linearRampToValueAtTime(vol * 0.12, time + attack);
+  g2.gain.linearRampToValueAtTime(vol * 0.05, time + duration * 0.5);
+  g2.gain.linearRampToValueAtTime(0.001, time + duration + release);
+  g3.gain.setValueAtTime(0, time);
+  g3.gain.linearRampToValueAtTime(vol * 0.04, time + attack);
+  g3.gain.linearRampToValueAtTime(0.001, time + duration * 0.4);
+  osc1.connect(g1); g1.connect(masterGain); g1.connect(reverbGain);
+  osc2.connect(g2); g2.connect(masterGain); g2.connect(reverbGain);
+  osc3.connect(g3); g3.connect(masterGain);
+  osc1.start(time); osc1.stop(time + duration + release + 0.1);
+  osc2.start(time); osc2.stop(time + duration + release + 0.1);
+  osc3.start(time); osc3.stop(time + duration * 0.5);
+  scheduledNoteEvents.push({ time, midi, velocity });
+}
+
+// Strings: warm sustained pad
+function playStringNote(time, midi, duration, velocity) {
+  const freq = mtof(midi);
+  const vol = velocity * 0.08;
+  const osc1 = audioCtx.createOscillator(); osc1.type = 'sawtooth'; osc1.frequency.value = freq;
+  const osc2 = audioCtx.createOscillator(); osc2.type = 'sawtooth'; osc2.frequency.value = freq * 1.003; // slight detune for warmth
+  const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1200 + velocity * 800; filt.Q.value = 0.7;
+  const g = audioCtx.createGain();
+  const attack = 0.4, release = Math.min(duration * 0.5, 2);
+  g.gain.setValueAtTime(0, time);
+  g.gain.linearRampToValueAtTime(vol, time + attack);
+  g.gain.setValueAtTime(vol, time + duration - 0.1);
+  g.gain.linearRampToValueAtTime(0.001, time + duration + release);
+  const merge = audioCtx.createGain(); merge.gain.value = 0.5;
+  osc1.connect(merge); osc2.connect(merge);
+  merge.connect(filt); filt.connect(g);
+  g.connect(masterGain); g.connect(reverbGain);
+  osc1.start(time); osc1.stop(time + duration + release + 0.1);
+  osc2.start(time); osc2.stop(time + duration + release + 0.1);
+}
+
+// Celeste / bell tone for high sparkle notes
+function playCelesteNote(time, midi, duration, velocity) {
+  const freq = mtof(midi);
+  const vol = velocity * 0.06;
+  const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, time);
+  g.gain.linearRampToValueAtTime(vol, time + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, time + duration + 1.5);
+  osc.connect(g); g.connect(masterGain); g.connect(reverbGain);
+  osc.start(time); osc.stop(time + duration + 1.6);
+}
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.75;
+
+  // Reverb send
+  const reverb = createReverb();
+  reverbGain = audioCtx.createGain();
+  reverbGain.gain.value = 0.3;
+  reverbGain.connect(reverb);
+  reverb.connect(masterGain);
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 1024;
+  analyser.smoothingTimeConstant = 0.88;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  timeData = new Uint8Array(analyser.fftSize);
+  masterGain.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+// ══════════════════════════════════════
+// ── CLAIR DE LUNE — SYMPHONIC ARRANGEMENT ──
+// ══════════════════════════════════════
+
+function scheduleClairDeLune(startTime) {
+  const t = startTime;
+  const e = 0.4; // eighth note (~54 BPM feel)
+  const dq = e * 3; // dotted quarter
+
+  // ── Section A: Opening (pp, très lentement) ──
+  // Piano melody with string pad underneath
+
+  // String pad: Db major sustained
+  playStringNote(t, 49, dq*6, 0.35); // Db3
+  playStringNote(t, 56, dq*6, 0.3); // Ab3
+  playStringNote(t, 61, dq*6, 0.25); // Db4
+
+  // Piano: opening chords
+  playPianoNote(t + 0, 61, dq*2.5, 0.35); // Db4
+  playPianoNote(t + 0, 49, dq*2.5, 0.3); // Db3
+  playPianoNote(t + dq, 65, dq*1.5, 0.38); // F4
+  playPianoNote(t + dq*2, 68, dq, 0.4); // Ab4
+
+  // Measure 2
+  playPianoNote(t + dq*3, 61, dq*2.5, 0.3); // Db4
+  playPianoNote(t + dq*3, 49, dq*2.5, 0.25); // Db3
+  playPianoNote(t + dq*4, 66, dq, 0.38); // Gb4
+  playPianoNote(t + dq*4.5, 65, dq*0.8, 0.36); // F4
+  playPianoNote(t + dq*5, 63, dq, 0.38); // Eb4
+  playCelesteNote(t + dq*5.5, 80, dq, 0.2); // Ab5 sparkle
+
+  // String pad transition
+  playStringNote(t + dq*6, 46, dq*6, 0.35); // Bb2
+  playStringNote(t + dq*6, 58, dq*6, 0.3); // Bb3
+  playStringNote(t + dq*6, 53, dq*6, 0.25); // F3
+
+  // ── Measures 3-4: Melody begins ──
+  playPianoNote(t + dq*6, 70, dq*1.5, 0.5); // Bb4 - melody
+  playPianoNote(t + dq*6, 46, dq*2.5, 0.25); // Bb2 bass
+  playPianoNote(t + dq*7.5, 68, dq*0.8, 0.45); // Ab4
+  playPianoNote(t + dq*8.3, 70, dq*0.7, 0.45); // Bb4
+  playCelesteNote(t + dq*7, 82, dq*0.5, 0.15); // Bb5 echo
+
+  playPianoNote(t + dq*9, 68, dq, 0.5); // Ab4
+  playPianoNote(t + dq*9, 44, dq*3, 0.25); // Ab2
+  playPianoNote(t + dq*10, 66, dq, 0.45); // Gb4
+  playPianoNote(t + dq*11, 65, dq, 0.45); // F4
+
+  // ── Measures 5-6: Descending phrase ──
+  playStringNote(t + dq*12, 42, dq*6, 0.35); // Gb2
+  playStringNote(t + dq*12, 54, dq*6, 0.3); // Gb3
+  playStringNote(t + dq*12, 49, dq*6, 0.25); // Db3
+
+  playPianoNote(t + dq*12, 66, dq*1.5, 0.5); // Gb4
+  playPianoNote(t + dq*12, 42, dq*2.5, 0.25); // Gb2
+  playPianoNote(t + dq*13.5, 65, dq*0.8, 0.45); // F4
+  playPianoNote(t + dq*14.3, 63, dq*0.7, 0.42); // Eb4
+
+  // Resolve to Db
+  playPianoNote(t + dq*15, 61, dq*3, 0.5); // Db4
+  playPianoNote(t + dq*15, 49, dq*3, 0.3); // Db3
+  playPianoNote(t + dq*15, 37, dq*3, 0.25); // Db2
+  playCelesteNote(t + dq*16, 73, dq*2, 0.2); // Db5 bell
+
+  // ── Section B: Arpeggiated development ──
+  // Strings swell
+  playStringNote(t + dq*18, 49, dq*6, 0.4); // Db3
+  playStringNote(t + dq*18, 56, dq*6, 0.35); // Ab3
+  playStringNote(t + dq*18, 61, dq*6, 0.3); // Db4
+  playStringNote(t + dq*18, 65, dq*6, 0.2); // F4
+
+  // Rolling arpeggios
+  const arp1 = [49, 61, 65, 68, 73, 68, 65, 61]; // Db major
+  const arp2 = [46, 58, 63, 66, 70, 66, 63, 58]; // Bb minor
+  const arp3 = [44, 56, 61, 65, 68, 65, 61, 56]; // Ab major
+  const arp4 = [42, 54, 58, 63, 66, 63, 58, 54]; // Gb major
+
+  // Measure 7: Db arpeggio + melody
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*18 + i*e*0.9, arp1[i], e*1.5, 0.28);
+  playPianoNote(t + dq*18, 70, dq*1.5, 0.5); // Bb4
+  playPianoNote(t + dq*19.5, 68, dq*0.7, 0.45); // Ab4
+  playPianoNote(t + dq*20.2, 70, dq*0.8, 0.45); // Bb4
+
+  // Measure 8: Bb minor arpeggio + melody rises
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*21 + i*e*0.9, arp2[i], e*1.5, 0.28);
+  playPianoNote(t + dq*21, 75, dq*2, 0.52); // Eb5
+  playPianoNote(t + dq*23, 73, dq, 0.48); // Db5
+  playCelesteNote(t + dq*21, 87, dq, 0.15); // Eb6 sparkle
+
+  // Strings shift
+  playStringNote(t + dq*24, 44, dq*6, 0.4); // Ab2
+  playStringNote(t + dq*24, 56, dq*6, 0.35); // Ab3
+  playStringNote(t + dq*24, 61, dq*6, 0.3); // Db4
+
+  // Measure 9: Ab arpeggio + melody descends
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*24 + i*e*0.9, arp3[i], e*1.5, 0.28);
+  playPianoNote(t + dq*24, 73, dq*1.5, 0.52); // Db5
+  playPianoNote(t + dq*25.5, 70, dq*0.7, 0.48); // Bb4
+  playPianoNote(t + dq*26.2, 68, dq*0.8, 0.45); // Ab4
+
+  // Measure 10: Gb arpeggio + melody rests
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*27 + i*e*0.9, arp4[i], e*1.5, 0.28);
+  playPianoNote(t + dq*27, 70, dq*3, 0.5); // Bb4 sustained
+  playCelesteNote(t + dq*28, 82, dq*2, 0.18); // Bb5
+
+  // ── Section C: Second theme, more passion ──
+  playStringNote(t + dq*30, 49, dq*6, 0.45); // Db3
+  playStringNote(t + dq*30, 56, dq*6, 0.4); // Ab3
+  playStringNote(t + dq*30, 63, dq*6, 0.35); // Eb4
+  playStringNote(t + dq*30, 68, dq*6, 0.25); // Ab4
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*30 + i*e*0.9, arp1[i], e*1.5, 0.32);
+  playPianoNote(t + dq*30, 70, dq, 0.52); // Bb4
+  playPianoNote(t + dq*31, 73, dq, 0.55); // Db5
+  playPianoNote(t + dq*32, 75, dq, 0.55); // Eb5
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*33 + i*e*0.9, arp2[i], e*1.5, 0.32);
+  playPianoNote(t + dq*33, 77, dq*2, 0.6); // F5 - climax
+  playPianoNote(t + dq*35, 75, dq, 0.55); // Eb5
+  playCelesteNote(t + dq*33, 89, dq, 0.18); // F6
+
+  // Strings crescendo
+  playStringNote(t + dq*36, 42, dq*6, 0.5); // Gb2
+  playStringNote(t + dq*36, 54, dq*6, 0.45); // Gb3
+  playStringNote(t + dq*36, 58, dq*6, 0.4); // Bb3
+  playStringNote(t + dq*36, 66, dq*6, 0.3); // Gb4
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*36 + i*e*0.9, arp3[i], e*1.5, 0.3);
+  playPianoNote(t + dq*36, 73, dq*1.5, 0.55); // Db5
+  playPianoNote(t + dq*37.5, 70, dq*0.7, 0.5); // Bb4
+  playPianoNote(t + dq*38.2, 68, dq*0.8, 0.48); // Ab4
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*39 + i*e*0.9, arp4[i], e*1.5, 0.3);
+  playPianoNote(t + dq*39, 66, dq*3, 0.52); // Gb4 sustained
+
+  // ── Section D: Climax and resolution ──
+  playStringNote(t + dq*42, 44, dq*9, 0.5); // Ab2 - long pad
+  playStringNote(t + dq*42, 56, dq*9, 0.45); // Ab3
+  playStringNote(t + dq*42, 63, dq*9, 0.4); // Eb4
+  playStringNote(t + dq*42, 68, dq*9, 0.3); // Ab4
+
+  const arp5 = [51, 63, 68, 73, 75, 73, 68, 63]; // Eb minor
+  const arp6 = [49, 61, 65, 70, 73, 70, 65, 61]; // Db major
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*42 + i*e*0.9, arp5[i], e*1.5, 0.35);
+  playPianoNote(t + dq*42, 75, dq*1.5, 0.58); // Eb5
+  playPianoNote(t + dq*43.5, 73, dq, 0.55); // Db5
+  playPianoNote(t + dq*44.5, 70, dq*0.5, 0.5); // Bb4
+  playCelesteNote(t + dq*42.5, 87, dq*1.5, 0.2); // Eb6
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*45 + i*e*0.9, arp6[i], e*1.5, 0.35);
+  playPianoNote(t + dq*45, 68, dq*2, 0.58); // Ab4
+  playPianoNote(t + dq*47, 70, dq, 0.55); // Bb4
+
+  // Final resolution: long Db major chord
+  playStringNote(t + dq*48, 37, dq*9, 0.45); // Db2
+  playStringNote(t + dq*48, 49, dq*9, 0.4); // Db3
+  playStringNote(t + dq*48, 56, dq*9, 0.35); // Ab3
+  playStringNote(t + dq*48, 61, dq*9, 0.3); // Db4
+  playStringNote(t + dq*48, 65, dq*9, 0.2); // F4
+
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*48 + i*e*1.1, arp1[i], e*2.5, 0.3);
+  playPianoNote(t + dq*48, 73, dq*4, 0.55); // Db5 - final melody note
+  playCelesteNote(t + dq*49, 85, dq*3, 0.2); // Db6 bell
+  playCelesteNote(t + dq*50, 73, dq*4, 0.15); // Db5 echo
+
+  // Gentle final arpeggios, dying away
+  for (let i = 0; i < 8; i++) playPianoNote(t + dq*52 + i*e*1.2, arp1[i], e*3, 0.2);
+  playPianoNote(t + dq*54, 61, dq*3, 0.35); // Db4
+  playPianoNote(t + dq*54, 73, dq*3, 0.3); // Db5
+  playPianoNote(t + dq*54, 37, dq*3, 0.2); // Db2
+
+  // Loop
+  const totalDuration = dq * 57;
+  noteScheduler = setTimeout(() => {
+    if (playing) {
+      playStartTime = audioCtx.currentTime + 2;
+      scheduleClairDeLune(playStartTime);
+    }
+  }, (totalDuration) * 1000);
+}
+
+// ── Stars ──
+const stars = [];
+const NUM_STARS = 120;
+function initStars() {
+  for (let i = 0; i < NUM_STARS; i++) {
+    stars.push({
+      x: Math.random()*W-W/2, y: Math.random()*H-H/2,
+      z: Math.random()*1000+1, size: Math.random()*1.5+0.5,
+      color: COLORS[Math.floor(Math.random()*COLORS.length)]
+    });
+  }
+}
+initStars();
+
+function drawStars(energy) {
+  const speed = 0.5 + energy * 3;
+  const cx = W/2, cy = H/2;
+  for (const s of stars) {
+    s.z -= speed;
+    if (s.z <= 0) { s.z = 1000; s.x = Math.random()*W-W/2; s.y = Math.random()*H-H/2; }
+    const sx = (s.x/s.z)*400+cx, sy = (s.y/s.z)*400+cy;
+    const r = (1-s.z/1000)*s.size*(1+energy*0.4);
+    const alpha = (1-s.z/1000)*0.5;
+    ctx.beginPath(); ctx.arc(sx, sy, Math.max(r,0.3), 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.globalAlpha = alpha; ctx.fill();
+    const prevSx = (s.x/(s.z+speed))*400+cx, prevSy = (s.y/(s.z+speed))*400+cy;
+    ctx.beginPath(); ctx.moveTo(prevSx,prevSy); ctx.lineTo(sx,sy);
+    ctx.strokeStyle = s.color; ctx.globalAlpha = alpha*0.2; ctx.lineWidth = Math.max(r*0.3,0.3); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── Central Text & Heart ──
+function drawCenterpiece() {
+  const cx = W/2;
+  drawHeart(cx, H - 68, 26, PINK, 0.35);
+  ctx.save();
+  ctx.font = '700 22px "Cinzel", serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#e6e8ef'; ctx.globalAlpha = 0.5;
+  ctx.fillText('Ben & Kathy', cx, H - 30);
+  ctx.restore();
+}
+
+// ── Floating Hearts ──
+let floatingHearts = [];
+function drawFloatingHearts(energy) {
+  if (Math.random() < 0.006 + energy*0.015) {
+    floatingHearts.push({
+      x: Math.random()*W, y: H+20, vy: -0.3-Math.random()*0.6, vx: (Math.random()-0.5)*0.3,
+      size: 4+Math.random()*8, wobble: Math.random()*Math.PI*2, wobbleSpeed: 0.01+Math.random()*0.012,
+      color: Math.random()<0.5 ? PINK : COLORS[Math.floor(Math.random()*COLORS.length)],
+      alpha: 0.08+Math.random()*0.1
+    });
+  }
+  floatingHearts = floatingHearts.filter(h => h.y > -40);
+  for (const h of floatingHearts) {
+    h.y += h.vy; h.wobble += h.wobbleSpeed; h.x += h.vx + Math.sin(h.wobble)*0.25;
+    drawHeart(h.x, h.y, h.size, h.color, h.alpha);
+  }
+}
+
+// ── Frequency Bars ──
+function drawFreqBars() {
+  const barCount = 48, barWidth = W/barCount, maxH = H*0.12;
+  for (let i = 0; i < barCount; i++) {
+    const idx = Math.floor(i*(freqData.length/barCount));
+    const val = freqData[idx]/255, h = val*maxH;
+    ctx.fillStyle = COLORS[Math.floor((i/barCount)*COLORS.length)%COLORS.length];
+    ctx.globalAlpha = 0.08+val*0.15;
+    ctx.fillRect(i*barWidth, H-h, barWidth-1, h);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── Ring expansions from melody notes ──
+let ringExpansions = [];
+let smoothEnergy = 0;
+
+// ── Main Loop ──
+function animate(ts) {
+  requestAnimationFrame(animate);
+  const t = ts / 1000;
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+
+  let energy = 0, bass = 0, mid = 0, high = 0;
+
+  if (playing && analyser) {
+    analyser.getByteFrequencyData(freqData);
+    analyser.getByteTimeDomainData(timeData);
+    let bassSum=0, midSum=0, highSum=0, total=0;
+    const binCount = freqData.length;
+    for (let i = 0; i < binCount; i++) {
+      const v = freqData[i]; total += v;
+      if (i < binCount*0.1) bassSum += v;
+      else if (i < binCount*0.4) midSum += v;
+      else highSum += v;
+    }
+    const rawEnergy = total/(binCount*255);
+    smoothEnergy = lerp(smoothEnergy, rawEnergy, 0.12);
+    energy = smoothEnergy;
+    bass = bassSum/(binCount*0.1*255);
+    mid = midSum/(binCount*0.3*255);
+    high = highSum/(binCount*0.6*255);
+
+    const now = audioCtx.currentTime;
+    while (scheduledNoteEvents.length && scheduledNoteEvents[0].time <= now) {
+      const ev = scheduledNoteEvents.shift();
+      if (ev.velocity > 0.4) {
+        ringExpansions.push({
+          radius: 25, speed: 1 + ev.velocity*1.5, alpha: 0.15 + ev.velocity*0.1,
+          color: COLORS[ev.midi % COLORS.length], width: 0.8
+        });
+      }
+    }
+  }
+
+  // Draw layers
+  drawStars(energy);
+  drawFloatingHearts(energy);
+  if (playing) drawFreqBars();
+
+  // Dancing lovers
+  drawDancers(t, energy);
+  drawSparkles();
+
+  // Ring expansions
+  const cx = W/2, cy = H/2;
+  ringExpansions = ringExpansions.filter(r => r.alpha > 0.015);
+  for (const ring of ringExpansions) {
+    ring.radius += ring.speed; ring.alpha *= 0.975;
+    ctx.beginPath(); ctx.arc(cx, cy, ring.radius, 0, Math.PI*2);
+    ctx.strokeStyle = ring.color; ctx.globalAlpha = ring.alpha;
+    ctx.lineWidth = ring.width; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  drawCursorTrail();
+  // Draw last so nothing overlaps — fully static, no energy influence
+  drawCenterpiece();
+}
+requestAnimationFrame(animate);
+
+// ── UI ──
+const overlay = document.getElementById('overlay');
+const playBtn = document.getElementById('playBtn');
+const pauseHint = document.getElementById('pauseHint');
+
+playBtn.addEventListener('click', (e) => { e.stopPropagation(); startPlaying(); });
+document.addEventListener('click', () => {
+  if (playing) {
+    playing = false;
+    clearTimeout(noteScheduler);
+    if (audioCtx) audioCtx.suspend();
+    overlay.classList.remove('hidden');
+    pauseHint.classList.remove('visible');
+  }
+});
+
+let hasStarted = false;
+function startPlaying() {
+  if (!audioCtx) {
+    initAudio();
+    playing = true;
+    hasStarted = true;
+    scheduledNoteEvents = [];
+    playStartTime = audioCtx.currentTime + 0.3;
+    scheduleClairDeLune(playStartTime);
+  } else {
+    audioCtx.resume();
+    playing = true;
+    if (!hasStarted) {
+      hasStarted = true;
+      scheduledNoteEvents = [];
+      playStartTime = audioCtx.currentTime + 0.3;
+      scheduleClairDeLune(playStartTime);
+    }
+  }
+  overlay.classList.add('hidden');
+  pauseHint.classList.add('visible');
+}
+
+window.addEventListener('resize', () => { stars.length = 0; initStars(); });
+</script>
+</body>
+</html>
